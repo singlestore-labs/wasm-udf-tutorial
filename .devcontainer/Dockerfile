@@ -22,6 +22,9 @@ ENV WASI_SDK_VERSION=14.0
 RUN cd /opt && curl -L https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-14/wasi-sdk-${WASI_SDK_VERSION}-linux.tar.gz \
     | tar -xz
 
+RUN echo 'alias clang=/opt/wasi-sdk-14.0/bin/clang' >> /etc/bash.bashrc
+RUN echo 'alias clang++=/opt/wasi-sdk-14.0/bin/clang++' >> /etc/bash.bashrc
+
 ENV WASMTIME_VERSION=0.33.0
 RUN curl -L https://github.com/bytecodealliance/wasmtime/releases/download/v${WASMTIME_VERSION}/wasmtime-v${WASMTIME_VERSION}-x86_64-linux.tar.xz \ 
     | tar -xJ --wildcards --no-anchored --strip-components 1 -C /usr/bin wasmtime
