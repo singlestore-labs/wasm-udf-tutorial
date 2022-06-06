@@ -5,6 +5,7 @@ ARG VARIANT="buster"
 FROM mcr.microsoft.com/vscode/devcontainers/rust:0-${VARIANT}
 
 RUN rustup target add wasm32-wasi
+RUN rustup target add wasm32-unknown-unknown
 RUN rustup component add rustfmt rust-src clippy
 
 RUN cargo install cargo-wasi cargo-expand && \
