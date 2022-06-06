@@ -6,7 +6,7 @@ This tutorial will teach you how to write some simple WebAssembly (Wasm) UDFs in
 
 Pre-written code can be found under the [examples](examples) directory.
 
-## Setup￼
+## Setup
 
 For each example in this tutorial, it will be useful to create yourself a separate work directory in which to put your code and compiled artifacts.  This will help keep your files for each example organized.
 
@@ -35,7 +35,7 @@ When the container build completes, you are ready to go.  Be sure to execute you
 
 *Important Note*:  In each example of this tutorial, there will be a section where we load our compiled Wasm module into the SingleStore database.  For this, you will need a SQL client – which you will need to run on your local system, outside of the container.  To make the compiled artifacts you build in the container available to the SQL client, be sure to create your work directories under the Git project.  When the tutorial references a file in /workdir directory, replace this with the actual local (not the container-relative) path.
 
-### Manual Setup￼
+### Manual Setup
 
 If you’d prefer to set up your development environment manually, you’ll need to do the following:
 
@@ -53,14 +53,14 @@ If you’d prefer to set up your development environment manually, you’ll need
 
   - `cargo install --git https://github.com/bytecodealliance/wit-bindgen wit-bindgen-cli`
 
-## Developing a Simple Example￼
+## Developing a Simple Example
 
-### Creating the WIT Specification￼
+### Creating the WIT Specification
 
 Before we do any coding, let’s first define our interface. WIT is an Interface Definition Language (IDL) used for describing WASM modules in `*.wit` files. We'll create a .wit specification for our new function. In a new work directory, open a new file called power.wit in your text editor.
 
 Let’s say we want to develop a program that simply computes x^y (that is, x to the power of y).  The interface for this is simple; here is the WIT IDL for it:
-￼
+
 ```
 power-of: function(base: s32, exp: s32) -> s32
 ```
@@ -69,7 +69,7 @@ This function will take two signed 32-bit integers as arguments (the base and th
 
 Copy and paste the above code into power.wit and save it.  Now we’re ready to write some code.
 
-### In C/C++￼
+### In C/C++
 
 We’ll start by generating the C language bindings for our functions.  We can do this using the wit-bindgen program (demo).  In your work directory, run the following command:
 
@@ -101,7 +101,7 @@ This line forces the name of this wrapper function be exported from the compiled
 
 Now, let’s implement the logic we need.  To the bottom of the `power.c` file, add the following code (we can start by copying in the prototype from the `power.h` file):
 
-```cpp￼
+```cpp
 int32_t power_power_of(int32_t base, int32_t exp)
 {
     int32_t res = 1;
@@ -116,7 +116,7 @@ int32_t power_power_of(int32_t base, int32_t exp)
 Now let’s save the file and get back to our command line.
 
 We can compile this program into a Wasm module by using the following command.
-￼
+
 ```bash
 clang                            \
     --target=wasm32-unknown-wasi \
@@ -153,13 +153,13 @@ SELECT `power-of`(2, 8);
 
 ... which should return a single-column row with the value 256, of course.
 
-### In Rust￼
+### In Rust
 Now, let’s learn how to do the same thing using a Rust program.  Rust requires a little more infrastructure to set up first, but has some convenient integration points with WebAssembly.
 
 First, from within a new work directory, run `cargo init --vcs none --lib`.  This will set up a skeletal Rust source tree.
 
 Next, edit the file called `Cargo.toml` so that it looks like the following:
-￼
+
 ```
 [package]
 name = "power"
@@ -176,7 +176,7 @@ crate-type = ["cdylib"]
 We’ll also need the power.wit file we used above.  Either recreate it or copy it into your work directory.
 
 Now we’re almost ready to roll.  Edit the file `src/lib.rs` and replace its content with this:
-￼
+
 ```rust
 wit_bindgen_rust::export!("power.wit");
 struct Power;
@@ -207,7 +207,7 @@ cargo build --target wasm32-unknown-unknown
 ```
 
 We can now load the module into the database using the same procedure we discussed above.  The Wasm module is written to `target/wasm32-unknown-unknown/debug/power.wasm`, so we need to make sure the Wasm *infile* path is pointing there instead of the work tree’s root.
-￼
+
 ```sql
 CREATE DATABASE wasm_tutorial;
 USE wasm_tutorial;
@@ -220,15 +220,15 @@ And, once again, running the following SQL gives us back the expected result of 
 SELECT `power-of`(2, 8);
 ```
 
-## A More Complex Example￼
+## A More Complex Example
 
-### Creating the WIT Specification￼
+### Creating the WIT Specification
 
 In this example, we’ll work with strings and nested types.  Let’s create a function that takes a string, splits it at the first occurrence of a delimiting string, and then returns the two sub-strings along with their starting indices.   The output will be sent back as a list of records (aka structures).
 
 To start, let’s create a new work directory, and inside of it we’ll make a new file called `split.wit`.  The WIT IDL we need is below, so we can go ahead and paste that in and save it.
 
-```￼
+```
 record subphrase {
   str: string,
   idx: s32
@@ -236,7 +236,7 @@ record subphrase {
 split-str: function(phrase: string, delim: string) -> list<subphrase>
 ```
 
-### In C++￼
+### In C++
 
 With this example, we’ll use C++ so that we can leverage the STL’s higher-level data structures and keep our implementation focused on the big picture as much as possible.
 
@@ -263,7 +263,7 @@ This, too, looks a bit different than before.  For one thing, the function doesn
 Now let’s open up the `split.cpp` file.  Once again, we are going to add our implementation here.  At the bottom of the file, we can find the generated wrapper function, called `__wasm_export_split_split_str`.  This wrapper delegates to our function, and we also can see that it  is doing work required for lifting and lowering the data types on either side of the function call.
 
 We’ll now add our code.  Let’s first update the top of `split.cpp` as follows:
-￼
+
 ```cpp
 #include <memory>
 #include <stdlib.h>
@@ -275,20 +275,19 @@ We’ll now add our code.  Let’s first update the top of `split.cpp` as follow
 
 Since C++ has a more strict compiler than C, we’ll also need to make a small change to the generated code in this file at line 38.  Go ahead and change the following line:
 
-￼
 ```cpp
 ret->ptr = canonical_abi_realloc(NULL, 0, 1, ret->len);
 ```
 
 ... to this:
 
-```￼
+```
 ret->ptr = reinterpret_cast<char *>(canonical_abi_realloc(NULL, 0, 1, ret->len));
 ```
 
 And finally, to the bottom of the file, we’ll add this chunk of code:
 
-```￼
+```
 void split_split_str(split_string_t *phrase, split_string_t *delim, split_list_subphrase_t *ret0)
 {
     // Clear the result.
@@ -371,19 +370,19 @@ Hooray!  It’s time to load it into the database and try it out.  Another diffe
 
 Start your database client up, again making sure you enable the “local infile” feature (`--local-infile=ON` for mysql), and issue the following statements.  Don’t forget to replace `/workdir`.
 
-```sql￼
+```sql
 CREATE DATABASE wasm_tutorial;
 USE wasm_tutorial;
 CREATE FUNCTION `split-str` RETURNS TABLE AS WASM FROM INFILE '/workdir/split.wasm' WITH WIT FROM INFILE '/workdir/split.wit';
 ```
 
 Now we can run our Wasm function as a TVF like this:
-￼
+
 ```sql
 SELECT * FROM `split-str`('wasm_rocks_the_house', '_');
 ```
 ... which will produce the following output:
-￼
+
 ```
 +-------+-----+
 | str   | idx |
@@ -398,14 +397,14 @@ SELECT * FROM `split-str`('wasm_rocks_the_house', '_');
 
 Awesome!
 
-### In Rust￼
+### In Rust
 
 For our last trick, we’ll split strings in Wasm using a Rust-based implementation.  Much of this will be similar to the techniques we used in the simple example.
 
 Start by creating a new work directory and initializing it using `cargo init --vcs none --lib`.
 
 Now, edit the `Cargo.toml` file so it looks like this:
-￼
+
 ```
 [package]
 name = "split"
@@ -423,7 +422,7 @@ Next, let’s copy or recreate the split.wit file in our work directory.
 
 And, for the implementation, edit the `src/lib.rs` file and replace its contents with this:
 
-```rust￼
+```rust
 wit_bindgen_rust::export!("split.wit");
 struct Split;
 use crate::split::Subphrase;
@@ -456,7 +455,7 @@ cargo build --target wasm32-unknown-unknown
 
 And, we’ll finish up by loading the module into the database as TVF, just as we did with the simple example.  Note again that our Wasm module is down in the target/debug directory.
 
-￼
+
 ```sql
 CREATE DATABASE wasm_tutorial;
 USE wasm_tutorial;
@@ -464,16 +463,13 @@ CREATE FUNCTION `split-str` RETURNS TABLE AS WASM FROM INFILE '/workdir/target/w
 ```
 
 Then:
-￼
+
 ```sql
 SELECT * FROM `split-str`('wasm_rocks_the_house', '_');
 ```
 
-## Wrap-Up￼
+## Wrap-Up
 
 Well, this concludes our little tutorial.  Using both the C/C++ and Rust programming languages we were able to turn simple and not-quite-so-simple use cases into WebAssembly programs.  We also learned how to load them into the SingleStore database in form of UDFs and TVFs, and then run them.
 
 Hopefully, this helps you kickstart your own Wasm UDFs.  Thanks for tuning in!
-
-
-
