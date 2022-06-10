@@ -62,7 +62,7 @@ Before we do any coding, let’s first define our interface. WIT is an Interface
 Let’s say we want to develop a program that simply computes x^y (that is, x to the power of y).  The interface for this is simple; here is the WIT IDL for it:
 
 ```
-power-of: function(base: s32, exp: s32) -> s32
+power-of: func(base: s32, exp: s32) -> s32
 ```
 
 This function will take two signed 32-bit integers as arguments (the base and the exponent) and return a single signed 32-bit integer.
@@ -136,7 +136,7 @@ In your SQL client, issue the following commands.  For this tutorial, we’ll ju
 ```sql
 CREATE DATABASE wasm_tutorial;
 USE wasm_tutorial;
-CREATE FUNCTION `power-of` AS WASM FROM INFILE '/workdir/power.wasm' WITH WIT FROM INFILE '/workdir/power.wit';
+CREATE FUNCTION `power-of` AS WASM FROM LOCAL INFILE '/workdir/power.wasm' WITH WIT FROM LOCAL INFILE '/workdir/power.wit';
 ```
 
 If the UDF has been created successfully, you will see something like:
@@ -233,7 +233,7 @@ record subphrase {
   str: string,
   idx: s32
 }
-split-str: function(phrase: string, delim: string) -> list<subphrase>
+split-str: func(phrase: string, delim: string) -> list<subphrase>
 ```
 
 ### In C++
