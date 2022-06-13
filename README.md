@@ -12,7 +12,7 @@ For each example in this tutorial, it will be useful to create yourself a separa
 
 In addition to a SQL client and SingleStore database, you’ll need a few other things to get your environment set up properly.  For this, you have a couple of options.
 
-### VS Code DevContainer Setup￼
+### VS Code DevContainer Setup
 
 The easiest way to get started is to download the GitHub repository for this tutorial.  This repo provides a VS Code DevContainer that will give you all of the tools you'll need to work through the examples here.  It also includes fully-written versions of the examples themselves in case you just want to cut to the chase.
 
