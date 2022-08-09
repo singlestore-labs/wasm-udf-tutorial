@@ -1,1 +1,0 @@
-power-of: func(base: s32, exp: s32) -> s32
